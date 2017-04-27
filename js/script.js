@@ -1,3 +1,16 @@
+
+$.ajax({
+  dataType: "json",
+  url: "json/jeux.json",
+  success: function(result) {
+    console.log(result);
+    localStorage.setItem('top', result.top);
+    localStorage.setItem('scoretext', result.scoretext);
+    localStorage.setItem('winmessage', result.winmessage);
+
+
+  }
+});
 var game = new Phaser.Game(800, 500, Phaser.AUTO, 'affichage', { preload: preload, create: create, update: update });
 
 function preload() {
@@ -16,6 +29,18 @@ var keyS;
 var keyD;
 var intMouvement = 0;
 var text;
+var PushMeD;
+var PushMeG;
+var accelerationD =0;
+var accelerationG =0;
+var acceleration = 0;
+var input = 0;
+var topScoreText = localStorage.getItem("top");
+var ScorePersoText = localStorage.getItem("scoretext");
+var TextWin = localStorage.getItem("winmessage");
+var topScore = localStorage.getItem("highscore");
+var rejouer = 0;
+
 function create() {
   //  We're going to be using physics, so enable the Arcade Physics system
   game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -93,24 +118,26 @@ function create() {
   // 	//  This just gives each star a slightly random bounce value
   // 	star.body.bounce.y = 0.6 + Math.random() * 0.2;
   // }
-  var style = { font: "bold 32px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
-  text = game.add.text(250,0, "Votre score : " + intMouvement , style);
-  result = game.add.text(50,50, "" , style);
+  var style = { font: "bold 20px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+  var style2 = { font: "bold 20px Arial", fill: "#fff", boundsAlignH: "center", boundsAlignV: "middle" };
+  text = game.add.text(250,0, ScorePersoText + intMouvement , style);
+  result = game.add.text(150,50, "" , style2);
+  if (topScore != "" && topScore != undefined && topScore != null) {
+      topplayer = game.add.text(0,0, topScoreText  + topScore + " !" , style2);
+  } else {
+    topplayer = game.add.text(0,0, "Top score : 0 !" , style2);
+  }
   text.setShadow(3, 3, 'rgba(0,0,0,0.5)', 2);
-}
 
-var PushMeD;
-var PushMeG;
-var accelerationD =0;
-var accelerationG =0;
-var acceleration = 0;
-var input = 0;
+}
 
 function update() {
   //  Collide the player and the stars with the platforms
   game.physics.arcade.collide(player, platforms);
   game.physics.arcade.collide(player2, platforms);
   game.physics.arcade.collide(player, player2);
+
+
   //game.physics.arcade.collide(stars, platforms);
 
   // game.physics.arcade.overlap(player, stars, collectStar, null, this);
@@ -183,35 +210,41 @@ function update() {
     player.animations.stop();
     player.body.velocity.x = 0;
     player2.body.velocity.x = 0;
-    result.setText("Félicitation vous avez Gagner ! R pour rejouer");
+    result.setText(TextWin);
+    rejouer = 1;
   }
   var statut;
-
+  if (rejouer == 1)
+  {
+    if (keyR.isDown)
+    {
+      player.body.position.x = 32;
+      player2.body.position.x = 65;
+      result.setText("");
+      if (topScore < intMouvement)
+      {
+        localStorage.setItem('highscore', intMouvement);
+        topScore = localStorage.getItem('highscore');
+      }
+      text.setText(topScoreText + intMouvement + " points !");
+      topplayer.setText(topScoreText + topScore + " points !");
+      accelerationG = 0;
+      accelerationD = 0;
+      intMouvement = 0;
+      input += 10;
+      rejouer = 0;
+    }
+  }
   if (keyS.isDown)
   {
-    // console.log(intMouvement);
-    // if (intMouvement%2 == 0)
-    // {
-    // 	statut = 0;
-    // 	console.log("Input :" + input);
-    //
-    // }
-      console.log("vitesse d'acceleration :" + player.body.velocity.x);
-      console.log("Vitesse du joueur :" + acceleration);
-      console.log("Input :" + input);
+    console.log("vitesse d'acceleration :" + player.body.velocity.x);
+    console.log("Vitesse du joueur :" + acceleration);
+    console.log("Input :" + input);
+    console.log("Score actuel :" + intMouvement);
+    console.log("Highscore :" + topScore);
   }
 
-  if (keyR.isDown)
-  {
-    player.body.position.x = 32;
-    player2.body.position.x = 65;
-    result.setText("");
-    intMouvement = 0;
-    text.setText("Votre score " + intMouvement + " points !");
-    accelerationG = 0;
-    accelerationD = 0;
-    input = 0;
-  }
+
 }
 
 function collectStar (player, star) {
